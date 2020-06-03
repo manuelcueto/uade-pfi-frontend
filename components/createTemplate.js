@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import _ from 'lodash';
-import { Typography, Card, CardContent, FormControl, Button, TextField } from '@material-ui/core';
+import { Typography, Card, CardContent, FormControl, Button, TextField, TextareaAutosize } from '@material-ui/core';
 
 class CreateTemplate extends React.Component {
 
@@ -34,7 +34,7 @@ class CreateTemplate extends React.Component {
                 <Typography color="primary">Crear un nuevo Template</Typography>
                 <FormControl>
                     <TextField fullWidth label="nombre" value={this.state.nombre} onChange={this.handleNameChange} />
-                    <TextField fullWidth label="template" variant="outlined" value={this.state.template} onChange={this.handleTemplateChange} multiline rows={4} />
+                    <TextareaAutosize label="template" variant="outlined" value={this.state.template} onChange={this.handleTemplateChange} multiline rows={4} />
                     <Button variant='contained' onClick={this.createCampaign} color='secondary'>Crear</Button>
                 </FormControl>
             </CardContent>

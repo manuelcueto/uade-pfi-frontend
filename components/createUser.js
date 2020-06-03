@@ -64,6 +64,7 @@ export default function NewUser(props) {
     const [conscientiousness, _setConscientiousness] = useState(0)
     const [neuroticism, _setNeuroticism] = useState(0)
     const [openness, _setOpenness] = useState(0)
+    const [validForm, setValidForm] = useState('false')
 
 
     useEffect(() => {
@@ -89,10 +90,9 @@ export default function NewUser(props) {
     const setNeuroticism = (ev, val) => _setNeuroticism(val)
     const setOpenness = (ev, val) => _setOpenness(val)
 
-
     const createUser = () => {
         const b = ("base" in props) ? bases.find(base => base.name == props.base) : undefined
-        
+
         const base = (b !== undefined) ? b.id : baseId
         const user = {
             name: name,
@@ -115,6 +115,12 @@ export default function NewUser(props) {
     const staticBase = (id) => {
         return id
     }
+
+    const validateEmail = (email) => {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
     const baseSelect = () => {
         return <FormControl className={classes.formControl} >
             <InputLabel id="create-campaign-base-select">Base de usuarios</InputLabel>
@@ -129,7 +135,22 @@ export default function NewUser(props) {
     }
     const withUserBase = ("base" in props) ? staticBase(props.base) : baseSelect
 
-
+    const validEmail = () => {
+        if (email.length < 3) {
+            return <TextField id="email-input" label="Email" variant="outlined" onChange={setEmail} />
+        } else if (validateEmail(email)) {
+            return <TextField id="email-input" label="Email" variant="outlined" onChange={setEmail} />
+        } else {
+            return <TextField id="email-input" error label="Email" variant="outlined" onChange={setEmail} />
+        }
+    }
+    const submitButton = () => {
+        if (validateEmail(email)) {
+            return <Button variant='contained' onClick={createUser} color='secondary'>Crear</Button>
+        } else {
+            return <Button variant='contained' onClick={createUser} disabled color='secondary'>Crear</Button>
+        }
+    }
     return (
         <Grid container className={classes.root} spacing={3}>
             <Grid item xs={12}>
@@ -147,7 +168,7 @@ export default function NewUser(props) {
                     </Grid>
                     <Grid container spacing={3}>
                         <FormControl className={classes.formControl}>
-                            <TextField id="email-input" label="Email" variant="outlined" onChange={setEmail} />
+                            {validEmail()}
                         </FormControl>
                         <FormControl className={classes.formControl}>
                             <TextField id="nationality-input" label="Nacionalidad" variant="outlined" onChange={setNationality} />
@@ -231,7 +252,7 @@ export default function NewUser(props) {
                             onChange={setOpenness}
                         />
                     </Grid>
-                    <Button variant='contained' onClick={createUser} color='secondary'>Crear</Button>
+                    {submitButton()}
                 </Paper>
             </Grid>
         </Grid >
