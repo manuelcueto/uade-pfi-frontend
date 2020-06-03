@@ -1,46 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import _ from 'lodash';
 import { Typography, Card, CardContent, FormControl, Button, TextField, TextareaAutosize } from '@material-ui/core';
 
-class CreateTemplate extends React.Component {
 
+export default function CreateTemplate() {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            nombre: "",
-            template: ""
-        }
+    const [name, _setName] = useState('')
+    const [subject, _setSubject] = useState('')
+    const [text, _setText] = useState('')
+
+    const setName = (ev) => {
+        _setName(ev.target.value)
+    }
+    const setSubject = (ev) => {
+        _setSubject(ev.target.value)
+    }
+    const setText = (ev) => {
+        _setText(ev.target.value)
     }
 
-
-    createCampaign = ev => {
-        axios.post("http://localhost:9999/api/templates", { name: this.state.nombre, text: this.state.template })
+    const createCampaign = ev => {
+        axios.post("http://localhost:9999/api/templates", { name: name, text: text, subject: subject })
 
     }
 
-    handleNameChange = ev => {
-        this.setState({ nombre: ev.target.value })
-    }
-
-    handleTemplateChange = ev => {
-        this.setState({ template: ev.target.value })
-    }
-
-    render() {
-        return <Card>
-            <CardContent>
-                <Typography color="primary">Crear un nuevo Template</Typography>
-                <FormControl>
-                    <TextField fullWidth label="nombre" value={this.state.nombre} onChange={this.handleNameChange} />
-                    <TextareaAutosize label="template" variant="outlined" value={this.state.template} onChange={this.handleTemplateChange} multiline rows={4} />
-                    <Button variant='contained' onClick={this.createCampaign} color='secondary'>Crear</Button>
-                </FormControl>
-            </CardContent>
-        </Card>;
-    }
+    return <Card>
+        <CardContent>
+            <Typography color="primary">Crear un nuevo Template</Typography>
+            <FormControl>
+                <TextField fullWidth label="nombre" value={name} onChange={setName} />
+                <TextField fullWidth label="asunto" value={subject} onChange={setSubject} />
+                <TextareaAutosize label="template" variant="outlined" value={text} onChange={setText} multiline rows={12} />
+                <Button variant='contained' onClick={createCampaign} color='secondary'>Crear</Button>
+            </FormControl>
+        </CardContent>
+    </Card>;
 }
-
-
-export default CreateTemplate;

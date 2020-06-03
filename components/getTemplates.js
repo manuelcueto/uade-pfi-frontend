@@ -1,102 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import _ from 'lodash';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Paper, TableRow, TableCell, Button, TableContainer,  Table, TableHead, TableBody, DialogContentText } from '@material-ui/core';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Paper, TableRow, TableCell, Button, TableContainer, Table, TableHead, TableBody, DialogContentText } from '@material-ui/core';
+import ConfirmDialog from './confirmDialog';
 
-class GetTemplates extends React.Component {
 
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            templates: [],
-            modalOpen: false,
-            selectedTemplate: null
-        }
-    }
+export default function GetTemplates(props) {
+    const [templates, _setTemplates] = useState([])
+    const [modalOpen, setModalOpen] = useState(false)
+    const [selectedTemplate, setSelectedTempate] = useState({})
 
-    fetchTemplates = (callback) => {
-        axios.get("http://localhost:9999/api/templates").then(response => {
-            const data = { templates: response.data }
-            this.setState(data)
-            callback()
+    useEffect(() => {
+        let fetch = axios.get("http://localhost:9999/api/templates").then(response => {
+            _setTemplates(response.data)
         })
-    }
-    componentDidMount = () => {
-        this.fetchTemplates(() => null)
-    }
+    }, [])
 
-
-    deleteTemplate = () => {
-        axios.delete("http://localhost:9999/api/templates/" + this.state.selectedTemplate).then(response => {
-            this.fetchTemplates(resp => this.handleClose())
-        })
+    const handleClose = (ev) => { setModalOpen(false) }
+    const handleOpen = (template) => {
+        setModalOpen(true)
+        setSelectedTempate(template)
     }
 
-    handleOpen = (template) => {
-        this.setState({ modalOpen: true, selectedTemplate: template.id });
-    };
-
-    handleClose = () => {
-        this.setState({ modalOpen: false });
-    };
-
-    handleNameChange = ev => {
-        this.setState({ nombre: ev.target.value })
+    const deleteTemplate = () => {
+        console.log("boom") //not implemented in backend
     }
 
-    handleTemplateChange = ev => {
-        this.setState({ template: ev.target.value })
-    }
-
-    render = () => {
-
-        let templateRows = _.map(this.state.templates, tmpl => {
-            return <TableRow key={tmpl.id}>
-                <TableCell>{tmpl.id}</TableCell>
-                <TableCell>{tmpl.name}</TableCell>
-                <TableCell>{tmpl.text}</TableCell>
-                <TableCell align='center'><Button onClick={ev => this.handleOpen(tmpl)}><DeleteIcon color='secondary' /></Button></TableCell>
-            </TableRow>
-        })
-        let foundTemplate = _.find(this.state.templates, tmpl => tmpl.id === this.state.selectedTemplate)
-        let templateName = (foundTemplate != null) ? foundTemplate.name : ''
-
-        return <div>
+    return (
+        <div>
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell>Id</TableCell>
                             <TableCell>Nombre</TableCell>
+                            <TableCell>Asunto</TableCell>
                             <TableCell>Template</TableCell>
                             <TableCell align='center'>Acción</TableCell>
                         </TableRow>
 
                     </TableHead>
                     <TableBody>
-                        {templateRows}
+                        {templates.map(tmpl => {
+                            return <TableRow key={tmpl.id}>
+                                <TableCell>{tmpl.id}</TableCell>
+                                <TableCell>{tmpl.name}</TableCell>
+                                <TableCell>{tmpl.subject}</TableCell>
+                                <TableCell>{tmpl.text}</TableCell>
+                                <TableCell align='center'><Button onClick={ev => handleOpen(tmpl)}><DeleteIcon color='secondary' /></Button></TableCell>
+                            </TableRow>
+                        })}
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Dialog open={this.state.modalOpen} onClose={this.handleClose}>
-                <DialogTitle>Confirmar Acción</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>Estás seguro que deseas eliminar el template {templateName}?</DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.handleClose} color="primary">
-                        Cancelar
-                    </Button>
-                    <Button onClick={this.deleteTemplate} color="primary" autoFocus>
-                        Borrar
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </div>;
-    }
+            <ConfirmDialog
+                onOpen={modalOpen}
+                onClose={handleClose}
+                titleText='Confirmar Acción'
+                contentText={'Estás seguro que deseas eliminar el template ' + selectedTemplate.name + '?'}
+                onCancel={handleClose}
+                onConfirm={deleteTemplate}
+                confirmText='Eliminar' />
+        </div>
+
+    )
+
 }
-
-
-export default GetTemplates;
