@@ -4,11 +4,19 @@ import axios from 'axios';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { Paper, TableRow, TableCell, Button, ButtonGroup, TableContainer, Table, TableHead, TableBody } from '@material-ui/core';
 import ConfirmDialog from './confirmDialog';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+    tableContainer: {
+        minWidth: 900
+    },
+}));
 
 
 
-export default function GetUserBases() {
+export default function GetUserBases({loading, setLoading, showAlert}) {
 
+    const classes = useStyles()
     const [bases, setBases] = useState([])
     const [modalOpen, setModalOpen] = useState(false)
     const [selectedBase, setSelectedBase] = useState({})
@@ -30,7 +38,7 @@ export default function GetUserBases() {
     }
     return (
         <div>
-            <TableContainer component={Paper}>
+            <TableContainer className={classes.tableContainer} component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -65,6 +73,7 @@ export default function GetUserBases() {
                 contentText={'Estás seguro que deseas eliminar la Base ' + selectedBase.name + '?'}
                 onCancel={handleClose}
                 onConfirm={deleteUserBase}
+                loading={loading}
                 confirmText='Eliminar' />
         </div>
     );

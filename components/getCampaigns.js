@@ -1,27 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { Paper, FormControl, TableRow, TableCell, Input, Button, TableContainer, Table, TableHead, TableBody, ButtonGroup, InputAdornment } from '@material-ui/core';
+import { Paper, FormControl, TableRow, TableCell,  Button, TableContainer, Table, TableHead, TableBody, ButtonGroup, InputAdornment, TextField } from '@material-ui/core';
 import ConfirmDialog from './confirmDialog';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+    tableContainer: {
+        minWidth: 900
+    },
+}));
 
 
+export default function GetCampaigns({setLoading, loading, showAlert}) {
 
-export default function GetCampaigns(props) {
-
+    const classes = useStyles()
     const [campaigns, setCampaigns] = useState([])
+    const [triggerFetch, setTriggerFetch] = useState(false)
     const [modalOpen, setModalOpen] = useState(false)
     const [sampleModalOpen, setSampleModalOpen] = useState(false)
     const [startModalOpen, setStartModalOpen] = useState(false)
-    const [percentage, _setPercentage] = useState(0)
+    const [percentage, setPercentage] = useState(0)
+    const [timeLimit, setTimeLimit] = useState(0)
     const [selectedCampaign, setSelectedCampaign] = useState({})
 
     useEffect(() => {
         let fetch = axios.get("http://localhost:9999/api/campaigns").then(response => {
             setCampaigns(response.data)
         })
-    }, [])
-
-    const setPercentage = ev => _setPercentage(ev.target.value)
+    }, [triggerFetch])
 
     const handleClose = (ev) => { setModalOpen(false) }
     const handleOpen = (campaign) => {
@@ -32,20 +39,23 @@ export default function GetCampaigns(props) {
         console.log("boom") //not implemented in backend
     }
 
-
-
     const handleCloseSample = (ev) => { setSampleModalOpen(false) }
     const handleSampleOpen = (campaign) => {
         setSampleModalOpen(true)
         setSelectedCampaign(campaign)
     }
-    const sampleCampaign = (alertCallback) => {
-        axios.post("http://localhost:9999/api/campaigns/" + selectedCampaign.id + "/startSampling/" + percentage).then(
+    const sampleCampaign = () => {
+        setLoading(true)
+        axios.post("http://localhost:9999/api/campaigns/" + selectedCampaign.id + "/startSampling", { percentage: percentage, limit: timeLimit }).then(
             succ => {
-                props.showAlert("success", "éxito!")
+                setLoading(false)
+                showAlert("success", "éxito!")
+                setTriggerFetch(true)
+                handleCloseSample()
             },
             err => {
-                props.showAlert("error", "Error Al Samplear la Campaña")
+                setLoading(false)
+                showAlert("error", "Error Al Samplear la Campaña")
                 handleCloseSample()
             }
         )
@@ -57,12 +67,17 @@ export default function GetCampaigns(props) {
         setSelectedCampaign(campaign)
     }
     const startCampaign = () => {
-        axios.post("http://localhost:9999/api/campaigns" + selectedCampaign.id + "/startFullCampaign").then(
+        setLoading(true)
+        axios.post("http://localhost:9999/api/campaigns/" + selectedCampaign.id + "/startFullCampaign").then(
             succ => {
-                props.showAlert("success", "éxito!")
+                setLoading(false)
+                showAlert("success", "éxito!")
+                handleCloseSample()
+                setTriggerFetch(true)
             },
             err => {
-                props.showAlert("error", "Error Al Comenzart la Campaña")
+                setLoading(false)
+                showAlert("error", "Error Al Comenzar la Campaña")
                 handleCloseSample()
             }
         )
@@ -71,10 +86,10 @@ export default function GetCampaigns(props) {
 
 
 
-    const rows = (statusText, extraAction) => {
+    const rows = (statusText, campaign, extraAction) => {
         return [
-            <TableCell>{statusText}</TableCell>,
-            <TableCell align='right'>
+            <TableCell key={campaign.id + "-status"}>{statusText}</TableCell>,
+            <TableCell key={campaign.id + "-actions"} align='right'>
                 <ButtonGroup>
                     {extraAction}
                     <Button onClick={ev => handleOpen(campaign)}><DeleteIcon color='secondary' /></Button>
@@ -85,26 +100,26 @@ export default function GetCampaigns(props) {
     const statusAndAction = (campaign) => {
         switch (campaign.status) {
             case "Started": {
-                return rows("Creada", <Button onClick={ev => handleSampleOpen(campaign)} variant="contained" color="secondary">Samplear</Button>)
+                return rows("Creada", campaign, <Button onClick={ev => handleSampleOpen(campaign)} variant="contained" color="secondary">Samplear</Button>)
                 break;
             }
             case "Sampling": {
-                return rows("Sampleando")
+                return rows("Sampleando", campaign)
                 break;
             }
             case "Running": {
-                return rows("Activa")
+                return rows("Activa", campaign)
                 break;
             }
             case "Sampled": {
-                return rows("Sampleo Completo", <Button onClick={ev => handleStartOpen(campaign)} variant="contained" color="primary">Comenzar</Button>)
+                return rows("Sampleo Completo", campaign, <Button onClick={ev => handleStartOpen(campaign)} variant="contained" color="primary">Comenzar</Button>)
                 break;
             }
         }
     }
     return (
         <div>
-            <TableContainer component={Paper}>
+            <TableContainer className={classes.tableContainer} component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -132,25 +147,33 @@ export default function GetCampaigns(props) {
                 contentText={'Estás seguro que deseas eliminar la Campaña ' + selectedCampaign.name + '?'}
                 onCancel={handleClose}
                 onConfirm={deleteCampaign}
+                loading={loading}
                 confirmText='Eliminar' />
             <ConfirmDialog
                 onOpen={startModalOpen}
                 onClose={handleCloseStart}
                 titleText='Confirmar Acción'
-                contentText={'Estás seguro que deseas eliminar la Campaña ' + selectedCampaign.name + '?'}
+                contentText={'Estás seguro que deseas comenzar la Campaña ' + selectedCampaign.name + '?'}
                 onCancel={handleCloseStart}
                 onConfirm={startCampaign}
-                confirmText='Eliminar' />
+                loading={loading}
+                confirmText='Comenzar' />
             <ConfirmDialog
                 onOpen={sampleModalOpen}
                 onClose={handleCloseSample}
                 titleText='Confirmar Acción'
-                contentText='Que porcentaje de usuarios queres samplear?'
+                contentText='Ingresa porcentaje de usuarios a samplear, y un límite de tiempo'
                 onCancel={handleCloseSample}
                 onConfirm={sampleCampaign}
+                loading={loading}
                 confirmText='Confirmar'>
                 <FormControl>
-                    <Input endAdornment={<InputAdornment position="end">%</InputAdornment>} id="percentage-input" label="Porcentaje" type="number" onChange={setPercentage} />
+                    <TextField
+                        InputProps={{
+                            endAdornment: <InputAdornment position="end">%</InputAdornment>
+                        }}
+                        id="percentage-input" label="Porcentaje" type="number" onChange={ev => setPercentage(ev.target.value)} />
+                    <TextField id="time-limit-input" label="Limite de tiempo" type="number" helperText="en Segundos" onChange={ev => setTimeLimit(ev.target.value)} />
                 </FormControl>
             </ConfirmDialog>
         </div>

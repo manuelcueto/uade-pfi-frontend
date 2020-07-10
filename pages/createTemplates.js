@@ -1,34 +1,23 @@
-import { AppBar, CssBaseline } from '@material-ui/core';
+import { useState } from 'react';
 import CreateTemplate from '../components/createTemplate';
-import { makeStyles } from '@material-ui/core/styles';
-import NavSidebar from '../components/sidebar';
-
-const useStyles = makeStyles((theme) => ({
-    root: {
-        display: 'flex'
-    },
-    content: {
-        flexGrow: 1,
-        backgroundColor: theme.palette.background.default,
-        padding: theme.spacing(3),
-    }
-}));
+import MainContainer from '../components/mainContainer';
 
 export default function Home() {
 
-    const classes = useStyles()
+    const [loading, setLoading] = useState(false)
+    const [alertVisible, setAlertVisible] = useState(false)
+    const [alertMessage, setAlertMessage] = useState('')
+    const [alertSeverity, setAlertSeverity] = useState('success')
+    const showAlert = (severity, message) => {
+        setAlertVisible(true)
+        setAlertMessage(message)
+        setAlertSeverity(severity)
+    }
 
 
-    return (
-        <div className={classes.root} >
-            <CssBaseline />
-            <AppBar position="fixed">
-            </AppBar>
-            <NavSidebar />
-            <main className={classes.content}>
-                <CreateTemplate />
-            </main>
 
-        </div>
-    )
+    return <MainContainer loading={loading} alertVisible={alertVisible} alertMessage={alertMessage} alertSeverity={alertSeverity} onCloseAlert={() => setAlertVisible(false)}>
+        <CreateTemplate showAlert={showAlert} setLoading={setLoading} />
+    </MainContainer>
+
 }

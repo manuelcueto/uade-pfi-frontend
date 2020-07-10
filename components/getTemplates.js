@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DeleteIcon from '@material-ui/icons/Delete';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Paper, TableRow, TableCell, Button, TableContainer, Table, TableHead, TableBody, DialogContentText } from '@material-ui/core';
+import { Paper, TableRow, TableCell, Button, TableContainer, Table, TableHead, TableBody } from '@material-ui/core';
 import ConfirmDialog from './confirmDialog';
 
 
 
-export default function GetTemplates(props) {
-    const [templates, _setTemplates] = useState([])
+export default function GetTemplates({setLoading, loading, showAlert}) {
+    const [templates, setTemplates] = useState([])
     const [modalOpen, setModalOpen] = useState(false)
     const [selectedTemplate, setSelectedTempate] = useState({})
 
     useEffect(() => {
         let fetch = axios.get("http://localhost:9999/api/templates").then(response => {
-            _setTemplates(response.data)
+            setTemplates(response.data)
         })
     }, [])
 
@@ -61,6 +61,7 @@ export default function GetTemplates(props) {
                 contentText={'Estás seguro que deseas eliminar el template ' + selectedTemplate.name + '?'}
                 onCancel={handleClose}
                 onConfirm={deleteTemplate}
+                loading={loading}
                 confirmText='Eliminar' />
         </div>
 

@@ -1,9 +1,13 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, DialogContentText, ButtonGroup } from '@material-ui/core';
+import { LinearProgress, Box } from '@material-ui/core';
 
 export default function ConfirmDialog(props) {
 
 
     return <Dialog open={props.onOpen} onClose={props.onClose}>
+        <Box visibility={props.loading ? "visible" : "hidden"}>
+            <LinearProgress />
+        </Box>
         <DialogTitle>{props.titleText}</DialogTitle>
         <DialogContent>
             <DialogContentText>{props.contentText}</DialogContentText>

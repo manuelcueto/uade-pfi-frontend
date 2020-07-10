@@ -1,45 +1,20 @@
 import { useState } from 'react';
-import { AppBar, CssBaseline, Snackbar } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import NavSidebar from '../components/sidebar';
 import GetTemplates from '../components/getTemplates';
-
-
-const useStyles = makeStyles((theme) => ({
-    root: {
-        display: 'flex'
-    },
-    content: {
-        flexGrow: 1,
-        backgroundColor: theme.palette.background.default,
-        padding: theme.spacing(3),
-    }
-}));
+import MainContainer from '../components/mainContainer';
 
 export default function Home() {
 
-    const classes = useStyles()
+    const [loading, setLoading] = useState(false)
     const [alertVisible, setAlertVisible] = useState(false)
+    const [alertMessage, setAlertMessage] = useState('')
+    const [alertSeverity, setAlertSeverity] = useState('success')
+    const showAlert = (severity, message) => {
+        setAlertVisible(true)
+        setAlertMessage(message)
+        setAlertSeverity(severity)
+    }
 
-    return (
-        <div className={classes.root} >
-            <CssBaseline />
-            <AppBar position="fixed">
-            </AppBar>
-            <NavSidebar />
-            <main className={classes.content}>
-                <GetTemplates showAlert={setAlertVisible}/>
-                <Snackbar
-                    open={alertVisible}
-                    autoHideDuration={6000}
-                    message="Exito!"
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'center',
-                    }}
-                    onClose={() => setAlertVisible(false)} />
-            </main>
-
-        </div>
-    )
+    return <MainContainer loading={loading} alertVisible={alertVisible} alertMessage={alertMessage} alertSeverity={alertSeverity} onCloseAlert={() => setAlertVisible(false)}>
+        <GetTemplates loading={loading} showAlert={showAlert} setLoading={setLoading} />
+    </MainContainer>
 }

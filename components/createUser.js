@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import _ from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import { Grid, Typography, InputLabel, Select, FormControl, Button, TextField, MenuItem, Slider, Paper } from '@material-ui/core';
+import TraitSlider from './slider';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -16,56 +16,27 @@ const useStyles = makeStyles((theme) => ({
     textField: {
         minWidth: 240,
     },
-    chips: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
-    chip: {
-        margin: 2,
-    },
-    slider: {
-        padding: theme.spacing(2),
-        width: 575
-    },
     paper: {
         padding: theme.spacing(2)
     }
 }));
 
-const marks = [
-    {
-        value: -15,
-        label: '-15',
-    },
-    {
-        value: 0,
-        label: '0',
-    },
-    {
-        value: 15,
-        label: '15',
-    }
-];
-
-
-export default function NewUser(props) {
+export default function NewUser({base, setLoading, showAlert}) {
 
     const classes = useStyles()
-    const [name, _setName] = useState('')
+    const [name, setName] = useState('')
     const [baseId, setBaseId] = useState('')
     const [bases, setBases] = useState([])
-    const [sex, _setSex] = useState('')
-    const [handedness, _setHandedness] = useState('left')
-    const [email, _setEmail] = useState('')
-    const [nationality, _setNationality] = useState('')
-    const [age, _setAge] = useState(0)
-    const [extraversion, _setExtraversion] = useState(0)
-    const [agreeableness, _setAgreeableness] = useState(0)
-    const [conscientiousness, _setConscientiousness] = useState(0)
-    const [neuroticism, _setNeuroticism] = useState(0)
-    const [openness, _setOpenness] = useState(0)
-    const [validForm, setValidForm] = useState('false')
-
+    const [sex, setSex] = useState('')
+    const [handedness, setHandedness] = useState('left')
+    const [email, setEmail] = useState('')
+    const [nationality, setNationality] = useState('')
+    const [age, setAge] = useState(0)
+    const [extraversion, setExtraversion] = useState(0)
+    const [agreeableness, setAgreeableness] = useState(0)
+    const [conscientiousness, setConscientiousness] = useState(0)
+    const [neuroticism, setNeuroticism] = useState(0)
+    const [openness, setOpenness] = useState(0)
 
     useEffect(() => {
         axios.get("http://localhost:9999/api/userBases").then(response => {
@@ -73,25 +44,9 @@ export default function NewUser(props) {
         })
     }, [])
 
-    const handleBase = (event) => {
-        setBaseId(event.target.value);
-    }
-
-
-    const setName = ev => _setName(ev.target.value)
-    const setSex = ev => _setSex(ev.target.value)
-    const setHandedness = ev => _setHandedness(ev.target.value)
-    const setEmail = ev => _setEmail(ev.target.value)
-    const setNationality = ev => _setNationality(ev.target.value)
-    const setAge = ev => _setAge(ev.target.value)
-    const setExtraversion = (ev, val) => _setExtraversion(val)
-    const setAgreeableness = (ev, val) => _setAgreeableness(val)
-    const setConscientiousness = (ev, val) => _setConscientiousness(val)
-    const setNeuroticism = (ev, val) => _setNeuroticism(val)
-    const setOpenness = (ev, val) => _setOpenness(val)
-
     const createUser = () => {
-        const b = ("base" in props) ? bases.find(base => base.name == props.base) : undefined
+
+        const b = base ? bases.find(base => base.name == base) : undefined
 
         const base = (b !== undefined) ? b.id : baseId
         const user = {
@@ -109,7 +64,13 @@ export default function NewUser(props) {
                 openness: openness
             }
         }
-        axios.post("http://localhost:9999/api/users/" + base, user)
+        axios.post("http://localhost:9999/api/users/" + base, user).then(response => {
+            setLoading(false)
+            showAlert("success", "Exito al crear usuario")
+        }, error => {
+            setLoading(false)
+            showAlert("error", "Hubo un error al crear usuario")
+        })
     }
 
     const staticBase = (id) => {
@@ -127,13 +88,14 @@ export default function NewUser(props) {
             <Select
                 labelId="create-campaign-base-select"
                 id="create-campaign-base-select"
-                onChange={handleBase}
+                value={baseId}
+                onChange={ev => setBaseId(ev.target.value)}
                 className={classes.textField}>
-                {_.map(bases, base => <MenuItem key={base.id} value={base.id}>{base.name}</MenuItem>)}
+                {bases.map(base => <MenuItem key={base.id} value={base.id}>{base.name}</MenuItem>)}
             </Select>
         </FormControl >
     }
-    const withUserBase = ("base" in props) ? staticBase(props.base) : baseSelect
+    const withUserBase = base ? staticBase(base) : baseSelect()
 
     const validEmail = () => {
         if (email.length < 3) {
@@ -151,6 +113,7 @@ export default function NewUser(props) {
             return <Button variant='contained' onClick={createUser} disabled color='secondary'>Crear</Button>
         }
     }
+
     return (
         <Grid container className={classes.root} spacing={3}>
             <Grid item xs={12}>
@@ -160,10 +123,10 @@ export default function NewUser(props) {
                 <Paper className={classes.paper}>
                     <Grid container spacing={3}>
                         <FormControl className={classes.formControl}>
-                            <TextField id="name-input" label="Nombre" variant="outlined" onChange={setName} />
+                            <TextField id="name-input" label="Nombre" variant="outlined" onChange={ev => setName(ev.target.value)} />
                         </FormControl>
                         <FormControl className={classes.formControl}>
-                            <TextField id="sex-input" label="Genero" variant="outlined" onChange={setSex} />
+                            <TextField id="sex-input" label="Genero" variant="outlined" onChange={ev => setSex(ev.target.value)} />
                         </FormControl>
                     </Grid>
                     <Grid container spacing={3}>
@@ -171,12 +134,12 @@ export default function NewUser(props) {
                             {validEmail()}
                         </FormControl>
                         <FormControl className={classes.formControl}>
-                            <TextField id="nationality-input" label="Nacionalidad" variant="outlined" onChange={setNationality} />
+                            <TextField id="nationality-input" label="Nacionalidad" variant="outlined" onChange={ev => setNationality(ev.target.value)} />
                         </FormControl>
                     </Grid>
                     <Grid container spacing={3}>
                         <FormControl className={classes.formControl}>
-                            <TextField id="age-input" label="Edad" type="number" variant="outlined" onChange={setAge} />
+                            <TextField id="age-input" label="Edad" type="number" variant="outlined" onChange={ev => setAge(ev.target.value)} />
                         </FormControl>
                         <FormControl className={classes.formControl} variant="outlined">
                             <InputLabel id="handedness-input">Mano dominante</InputLabel>
@@ -184,7 +147,7 @@ export default function NewUser(props) {
                                 labelId="handedness-input"
                                 id="handedness-input"
                                 value={handedness}
-                                onChange={setHandedness}
+                                onChange={ev => setHandedness(ev.target.value)}
                                 label="Mano dominante">
                                 <MenuItem value={"left"}>Izquierda</MenuItem>
                                 <MenuItem value={"right"}>Derecha</MenuItem>
@@ -192,66 +155,11 @@ export default function NewUser(props) {
                             </Select>
                         </FormControl>
                     </Grid>
-                    <Grid item className={classes.slider}>
-                        <Typography id="extraversion-label" gutterBottom>Extraversion</Typography>
-                        <Slider
-                            defaultValue={extraversion}
-                            min={-15}
-                            max={15}
-                            step={1}
-                            valueLabelDisplay="auto"
-                            marks={marks}
-                            onChange={setExtraversion}
-                        />
-                    </Grid>
-                    <Grid item className={classes.slider}>
-                        <Typography id="conscientiousness-label" gutterBottom>Conscientiousness</Typography>
-                        <Slider
-                            defaultValue={conscientiousness}
-                            min={-15}
-                            max={15}
-                            step={1}
-                            valueLabelDisplay="auto"
-                            marks={marks}
-                            onChange={setConscientiousness}
-                        />
-                    </Grid>
-                    <Grid item className={classes.slider}>
-                        <Typography id="agreeableness-label" gutterBottom>Agreeableness</Typography>
-                        <Slider
-                            defaultValue={agreeableness}
-                            min={-15}
-                            max={15}
-                            step={1}
-                            valueLabelDisplay="auto"
-                            marks={marks}
-                            onChange={setAgreeableness}
-                        />
-                    </Grid>
-                    <Grid item className={classes.slider}>
-                        <Typography id="neuroticism-label" gutterBottom>Neuroticism</Typography>
-                        <Slider
-                            defaultValue={neuroticism}
-                            min={-15}
-                            max={15}
-                            step={1}
-                            valueLabelDisplay="auto"
-                            marks={marks}
-                            onChange={setNeuroticism}
-                        />
-                    </Grid>
-                    <Grid item className={classes.slider}>
-                        <Typography id="openness-label" gutterBottom>Openness</Typography>
-                        <Slider
-                            defaultValue={openness}
-                            min={-15}
-                            max={15}
-                            step={1}
-                            valueLabelDisplay="auto"
-                            marks={marks}
-                            onChange={setOpenness}
-                        />
-                    </Grid>
+                    <TraitSlider name="Openness" defaultValue={openness} onChange={(ev, value) => setOpenness(value)} />
+                    <TraitSlider name="Neuroticism" defaultValue={neuroticism} onChange={(ev, value) => setNeuroticism(value)} />
+                    <TraitSlider name="Agreeableness" defaultValue={agreeableness} onChange={(ev, value) => setAgreeableness(value)} />
+                    <TraitSlider name="Conscientiousness" defaultValue={conscientiousness} onChange={(ev, value) => setConscientiousness(value)} />
+                    <TraitSlider name="Extraversion" defaultValue={extraversion} onChange={(ev, value) => setExtraversion(value)} />
                     {submitButton()}
                 </Paper>
             </Grid>
